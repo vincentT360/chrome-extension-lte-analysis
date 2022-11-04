@@ -1,7 +1,35 @@
-<html>
+<html lang="en">
+  <head>
+    <!--Bootstrap required-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/mystyles.css">
+  </head>
   <body>
-    <h1>Sending 2 HTTP Requests!</h1>
+    
+    <!--Need to fix the width-->
+    <div class="container mt-2 mb-3" style="width: 250px;">
+      <div class="row">
+        <div class="col mb-1">
+          <h5 style="text-align: center;">Latency Reduction Tool</h5>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-8">
+          <button type="button" id="sendRequest" class="btn btn-primary btn-sm body-text">Send Requests</button>
+        </div>
+        <div class="col">
 
+        </div>
+      </div>
+    </div>
+
+    <!--Our script-->
     <script src="./scripts/popup.js" type="module"></script>
+
+    <!--Bootstrap scripts-->
+    <script src="./scripts/jquery-3.6.1.min.js"></script>
+    <script src="./scripts/bootstrap.bundle.min.js"></script>
   </body>
 </html>
