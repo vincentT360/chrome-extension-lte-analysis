@@ -1,8 +1,13 @@
-chrome.webRequest.onBeforeRequest.addListener(
+// chrome.webRequest.onBeforeRequest.addListener(
+//   function(details) {
+//     console.log("onBeforeRequest: " + details.timeStamp + " : " + details.requestId + " : " + details.method + " : " + details.url);
+//   },
+//   {urls: ["<all_urls>"]}
+// );
+
+chrome.webRequest.onSendHeaders.addListener(
   function(details) {
-    // console.log(JSON.stringify(details));
-    console.log(details.requestId + " : " + details.method + " : " + details.url);
+    console.log("onSendHeaders: " + details.timeStamp + " : " + details.requestId + " : " + details.method + " : " + details.url);
   },
-  {urls: ["<all_urls>"]},
-  ["requestBody"]
-);
+  {urls: ["<all_urls>"]}
+)

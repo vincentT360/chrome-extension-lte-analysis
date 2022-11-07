@@ -1,15 +1,9 @@
-// function delay(time){
-//   return new Promise(resolve => {
-//       setTimeout(resolve, time);
-//   });
-// }
-
 //This hogs the main thread so we get better times
 function wait(ms){
-  var start = new Date().getTime();
-  var end = start;
-  while(end < start + ms) {
-    end = new Date().getTime();
+  var current = new Date().getTime();
+  var target = current + ms;
+  while(current < target) {
+    current = new Date().getTime();
   }
 }
 
@@ -18,34 +12,37 @@ function wait(ms){
 
 //Can also test what we are sending by going here and pressing connect, then in our extension send requests
 //https://socketsbay.com/test-websockets
-const socket = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/')
-function connect(){
-    return new Promise(function(resolve, reject) {
-      var server = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/')
-      server.onopen = function() {
-        console.log("success")
-        resolve(server);
-      };
-      server.onerror = function(err) {
-        reject(err)
-      }
-    })
+// const socket = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/')
 
+function connect(){
+  return new Promise(function(resolve, reject){
+    var server = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/');
+    server.onopen = function(){
+      console.log("WebSocket connection established");
+      connectionEstablished = true;
+      resolve(server);
+    };
+    server.onerror = function(err){
+      console.log("WebSocket connection failed");
+      reject(err);
+    };
+  });
+}
+
+function sendWebSocket(){
+  if(connectionEstablished){
+    console.log("Sending request 1 at: " + new Date().getTime());
+    server.send("request 1");
+    wait(5);
+    console.log("Sending request 2 at: " + new Date().getTime());
+    server.send("request 2");
+  }
+  else{
+    console.log("Could not send requests because the WebSocket connection failed");
+  }
 }
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
-let server = await connect();
-
-async function sendWebSocket(){
-
-  socket.send("hi1")
-  //var start = new Date().getTime()
-  wait(5);
-  //var end = new Date().getTime()
-  //console.log(start-end)
-  socket.send("hi2")
-}
-
-//Note: We have to do getElementById b/c chrome does not allow inline scripting like onclick=myfunction() in HTML
-//Basically, all scripting needs to stay in the js file
+var connectionEstablished = false;
+var server = await connect();
 document.getElementById("sendRequest").addEventListener("click", sendWebSocket);
