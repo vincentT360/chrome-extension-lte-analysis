@@ -1,7 +1,16 @@
-function delay(time){
-  return new Promise(resolve => {
-      setTimeout(resolve, time);
-  });
+// function delay(time){
+//   return new Promise(resolve => {
+//       setTimeout(resolve, time);
+//   });
+// }
+
+//This hogs the main thread so we get better times
+function wait(ms){
+  var start = new Date().getTime();
+  var end = start;
+  while(end < start + ms) {
+    end = new Date().getTime();
+  }
 }
 
 //IP addr for capturing packets:
@@ -28,8 +37,12 @@ function connect(){
 let server = await connect();
 
 async function sendWebSocket(){
+
   socket.send("hi1")
-  await delay(5000);
+  //var start = new Date().getTime()
+  wait(5);
+  //var end = new Date().getTime()
+  //console.log(start-end)
   socket.send("hi2")
 }
 
