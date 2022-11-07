@@ -1,9 +1,9 @@
 //This hogs the main thread so we get better times
 function wait(ms){
-  var current = new Date().getTime();
+  var current = performance.now();
   var target = current + ms;
   while(current < target) {
-    current = new Date().getTime();
+    current = performance.now();
   }
 }
 
