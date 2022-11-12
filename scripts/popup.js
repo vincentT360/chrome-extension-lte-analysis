@@ -11,6 +11,7 @@ function wait(ms){
 //https://www.nslookup.io/domains/https%3A%2F%2Fsocketsbay.com%2Ftest-websockets/webservers/
 
 //Can also test what we are sending by going here and pressing connect, then in our extension send requests
+//Our packets sent will pop up in the website below
 //https://socketsbay.com/test-websockets
 // const socket = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/')
 
