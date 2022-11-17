@@ -17,7 +17,8 @@ function wait(ms){
 
 function connect(){
   return new Promise(function(resolve, reject){
-    var server = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/');
+    //var server = new WebSocket('wss://socketsbay.com/wss/v2/2/demo/');
+    var server = new WebSocket('ws://131.179.176.31:8080');
     server.onopen = function(){
       console.log("WebSocket connection established");
       connectionEstablished = true;
@@ -31,12 +32,14 @@ function connect(){
 }
 
 function sendWebSocket(){
+  var gap = Number(document.getElementById("timeGap").value)
+  
   if(connectionEstablished){
-    console.log("Sending request 1 at: " + new Date().getTime());
-    server.send("request 1");
-    wait(5);
-    console.log("Sending request 2 at: " + new Date().getTime());
-    server.send("request 2");
+    console.log(`Sending request 1 at: ${Date.now()} with gap of ${gap}`);
+    server.send("rq 1");
+    wait(gap);
+    console.log(`Sending request 2 at: ${Date.now()}`);
+    server.send("rq 2");
   }
   else{
     console.log("Could not send requests because the WebSocket connection failed");
@@ -44,6 +47,16 @@ function sendWebSocket(){
 }
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
-var connectionEstablished = false;
-var server = await connect();
-document.getElementById("sendRequest").addEventListener("click", sendWebSocket);
+try {
+  var connectionEstablished = false;
+  var server = await connect();
+  document.getElementById("sendRequest").addEventListener("click", sendWebSocket);
+
+  //This fires when we get a message back from the server
+  server.onmessage = (event) => {
+  console.log(`Reported received time interval ${event.data}ms`)
+  document.getElementById("receivedGap").innerHTML = `Received Gap: ${event.data}ms`
+}
+} catch(error) {
+  document.getElementById("errorMessage").innerHTML = "Can't establish connection"
+}
