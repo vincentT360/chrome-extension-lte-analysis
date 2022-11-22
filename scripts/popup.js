@@ -50,7 +50,7 @@ function sendMultiple() {
   //Change the number in the for loop to how many times you want to send
   for(let i = 0; i < NUMSENDS; i++) {
     sendWebSocket(gap);
-    wait(100);
+    wait(200);
   }
 
 }
@@ -141,5 +141,5 @@ try {
   
 } catch(error) {
   document.getElementById("errorMessage").innerHTML = "Can't establish connection"
-  console.log(err)
+  console.log(error)
 }
