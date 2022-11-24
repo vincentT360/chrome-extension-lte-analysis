@@ -7,6 +7,7 @@ function wait(ms){
   }
 }
 
+//Create the actual ws connection to server
 function connect(){
   return new Promise(function(resolve, reject){
     var server = new WebSocket('ws://131.179.176.31:8080');
@@ -27,13 +28,13 @@ function sendWebSocket(gap){
   
   if(connectionEstablished){
 
-    server.send("rq 1");
+    server.send(gap);
     var time0 = performance.now()
     console.log(time0)
     wait(gap);
     var time1 = performance.now()
     console.log(time1)
-    server.send("rq 2");
+    server.send(gap);
 
   }
   else{
@@ -41,31 +42,94 @@ function sendWebSocket(gap){
   }
 }
 
-//This function sends multiple send requests
-function sendMultiple() {
+//DEPRECATED: Sends request based on gap input
+// function sendMultiROneGap() {
 
-  var gap = Number(document.getElementById("timeGap").value);
-  resetReceivedTracking();
+//   var gap = Number(document.getElementById("timeGap").value);
+//   resetReceivedTracking();
   
-  //Change the number in the for loop to how many times you want to send
-  for(let i = 0; i < NUMSENDS; i++) {
-    sendWebSocket(gap);
-    wait(200);
+//   //Change the number in the for loop to how many times you want to send
+//   for(let i = 0; i < NUMSENDS; i++) {
+//     sendWebSocket(gap);
+//     wait(200);
+//   }
+
+// }
+
+//This function sends multiple requests at multiple gaps
+function sendMultiRMultiGap() {
+
+  resetReceivedTracking();
+
+  gaps.forEach(function (g) {
+
+    for(let i = 0; i < NUMSENDS; i++) {
+      sendWebSocket(g);
+      wait(200);
+    }
+
+  })
+
+}
+
+//For this gap we are testing, add the received gap value the server saw
+function addDistributionData(sendGap, receivedGap){
+  //Code for rounding the receivedGap to the nearest .25
+  var rounded = (Math.round(receivedGap * 4) / 4).toFixed(2);
+
+  //Here we will store the receivedGap distribution for this gap
+  if (gapsDistribution.has(sendGap)) {
+    var internalMap = gapsDistribution.get(sendGap);
+
+    //Store distribution values
+    if (internalMap.has(rounded)) {
+      internalMap.set(rounded, internalMap.get(rounded) + 1);
+    } else {
+      internalMap.set(rounded, 1)
+    }
+
+    gapsDistribution.set(sendGap, internalMap);
+
+  } else {
+    var internalMap = new Map();
+    internalMap.set(rounded, 1);
+    gapsDistribution.set(sendGap, internalMap);
   }
 
 }
 
-//Reset our global variables
+//For this gap we are testing, add the count of if we got this packet within 1ms or not.
+function addCountData(sendGap, receivedGap){
+  if (gaps1msCount.has(sendGap)){
+    var counts = gaps1msCount.get(sendGap);
+    if (receivedGap <= 1.0) {
+      counts[0] += 1
+    } else {
+      counts[1] += 1
+    }
+    gaps1msCount.set(sendGap, counts);
+  } else{
+    var counts = [0,0]
+    if (receivedGap <= 1.0) {
+      counts[0] += 1
+    } else {
+      counts[1] += 1
+    }
+    gaps1msCount.set(sendGap, counts);
+  }
+}
+
+//Reset our global variables so we can start a new text
 function resetReceivedTracking() {
-  totalReceivedMessages = 0;
-  receivedGaps = new Map();
-  receivedGapsString = "";
+  numReceivedMessages = 0;
+  gapsDistribution = new Map();
+  gaps1msCount = new Map();
   document.getElementById("receivedGap").innerHTML = "";
 }
 
 //Generate a table to display to report the receiving gaps
 function reportGaps() {
-  const sortedTimes = new Map([...receivedGaps].sort((a,b) => a[0] - b[0]));
+  const sortedTimes = new Map([...gaps1msCount].sort((a,b) => a[0] - b[0]));
 
   const tbl = document.createElement("table");
   tbl.setAttribute("class", "table");
@@ -76,7 +140,7 @@ function reportGaps() {
   const tblHeadCell1 = document.createElement("td");
   const tblHeadCell2 = document.createElement("td");
   const tblHeadCellText1 = document.createTextNode("Time");
-  const tblHeadCellText2 = document.createTextNode("Count");
+  const tblHeadCellText2 = document.createTextNode("Within 1ms");
 
   tblHeadCell1.appendChild(tblHeadCellText1);
   tblHeadCell2.appendChild(tblHeadCellText2);
@@ -85,7 +149,6 @@ function reportGaps() {
   tblHead.appendChild(tblHeadRow);
       
   for (let [key, value] of sortedTimes) {
-
     const row = document.createElement("tr");
     const cellTime = document.createElement("td");
     const cellTimeText = document.createTextNode(key);
@@ -93,11 +156,15 @@ function reportGaps() {
     row.appendChild(cellTime);
 
     const cellCount = document.createElement("td");
-    const cellCountText = document.createTextNode(value);
+
+    //Calculate the percentage
+    var percentage = (value[0]/(value[0]+value[1])) * 100;
+
+    const cellCountText = document.createTextNode(`${percentage.toFixed(2)}%`);
     cellCount.appendChild(cellCountText);
     row.appendChild(cellCount);
-    tblBody.appendChild(row);
 
+    tblBody.appendChild(row);
   }
 
   tbl.appendChild(tblHead);
@@ -107,9 +174,21 @@ function reportGaps() {
 }
 
 //Below global variables are used to keep track of sends
-var totalReceivedMessages = 0;
-var receivedGaps = new Map();
-var receivedGapsString = "";
+//These are the ms gaps btwn 2 packets we will be using
+var gaps = [5, 6, 7];
+
+//Gaps distribution stores a send gap, and a map of its received distribution times
+//E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
+var gapsDistribution = new Map();
+
+//Gaps count stores a send gap, and an array representing [# of received packets <= 1ms, # > 1ms]
+//E.g {5: [5, 3], 6: [0, 4]}
+var gaps1msCount = new Map();
+
+//Used to keep track of how many messages we receive so when we get them all we can display summary data.\
+var numReceivedMessages = 0
+
+//Number of sends to test each gap time, i.e send 30 packet pairs with each pair being gapped by 5ms
 const NUMSENDS = 10;
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
@@ -117,26 +196,40 @@ try {
   var connectionEstablished = false;
   var server = await connect();
 
-  document.getElementById("sendRequest").addEventListener("click", sendMultiple);
+  document.getElementById("sendRequest").addEventListener("click", sendMultiRMultiGap);
 
   //This fires when we get a message back from the server
   server.onmessage = (event) => {
 
-    //This calculates the received gap into .25 increments and puts them into buckets
-    //Used to see what our distribution looks like.
-    var receivedGap = Number(event.data)
-    var rounded = (Math.round(receivedGap * 4) / 4).toFixed(2);
+    //Server sends a message in this form: "sendingGap receivingGap"
+    //Sending gap being the gap we sent the pair of packets with
+    //Receiving gap being the actual observed gap on the receiver side
 
-    if (receivedGaps.has(rounded)) {
-      receivedGaps.set(rounded, receivedGaps.get(rounded) + 1);
-    } else {
-      receivedGaps.set(rounded, 1);
-    }
+    var splitData = event.data.split(" ");
+    var sendGap = Number(splitData[0]);
+    var receivedGap = Number(splitData[1]);
 
-    totalReceivedMessages += 1
-    if (totalReceivedMessages == NUMSENDS) {
+    addDistributionData(sendGap, receivedGap);
+    addCountData(sendGap, receivedGap);
+
+    numReceivedMessages += 1;
+    //This detects after we have received all our responses from our server
+    if (numReceivedMessages == NUMSENDS * gaps.length){
       reportGaps();
     }
+
+    //Debugging, lets you see the contents of our 2 maps
+    for (let [key, value] of gapsDistribution) {
+      console.log(`For send gap ${key}`)
+      for (let [k2, v2] of value) {
+        console.log(k2, v2);
+      }
+    }
+
+    for (let [k, v] of gaps1msCount) {
+      console.log(`Counts ${k} is ${v}`);
+    }
+
   }
   
 } catch(error) {
