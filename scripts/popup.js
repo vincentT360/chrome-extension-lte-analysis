@@ -129,6 +129,8 @@ function resetReceivedTracking() {
 
 //Generate a table to display to report the receiving gaps
 function reportGaps() {
+  const percentages = [];
+
   const sortedTimes = new Map([...gaps1msCount].sort((a,b) => a[0] - b[0]));
 
   const tbl = document.createElement("table");
@@ -159,8 +161,10 @@ function reportGaps() {
 
     //Calculate the percentage
     var percentage = (value[0]/(value[0]+value[1])) * 100;
+    var modifiedPercentage = percentage.toFixed(2);
+    percentages.push(modifiedPercentage);
 
-    const cellCountText = document.createTextNode(`${percentage.toFixed(2)}%`);
+    const cellCountText = document.createTextNode(`${modifiedPercentage}%`);
     cellCount.appendChild(cellCountText);
     row.appendChild(cellCount);
 
@@ -171,11 +175,74 @@ function reportGaps() {
   tbl.appendChild(tblBody);
   document.getElementById("receivedGap").appendChild(tbl);
 
+  return percentages;
+
+}
+
+function generateChart(percentages){
+  const chartDiv = document.getElementById('chartDiv');
+  chartDiv.style.height = "400px";
+
+  if(createdGraph != null){
+    createdGraph.destroy();
+  }
+
+  const ctx = document.getElementById('mainChart');
+
+  var createdChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: gaps,
+      datasets: [
+        {
+          label: 'Collected Data',
+          data: percentages,
+          borderColor: '#36A2EB',
+          backgroundColor: '#9BD0F5',
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Parameter Inference'
+        }
+      },
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Gap Times (ms)'
+          }
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Packets Received Together (%)'
+          }
+        }
+      },
+      interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    }
+  });
+
+  return createdChart;
 }
 
 //Below global variables are used to keep track of sends
 //These are the ms gaps btwn 2 packets we will be using
-var gaps = [5, 6, 7];
+var gaps = [5, 6, 7, 8, 9, 10];
 
 //Gaps distribution stores a send gap, and a map of its received distribution times
 //E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
@@ -189,7 +256,10 @@ var gaps1msCount = new Map();
 var numReceivedMessages = 0
 
 //Number of sends to test each gap time, i.e send 30 packet pairs with each pair being gapped by 5ms
-const NUMSENDS = 10;
+const NUMSENDS = 5;
+
+//Create the graph object outside so that we can check in the future if the graph needs to be reset
+var createdGraph = null;
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
 try {
@@ -215,7 +285,8 @@ try {
     numReceivedMessages += 1;
     //This detects after we have received all our responses from our server
     if (numReceivedMessages == NUMSENDS * gaps.length){
-      reportGaps();
+      var percentages = reportGaps();
+      createdGraph = generateChart(percentages);
     }
 
     //Debugging, lets you see the contents of our 2 maps

@@ -9,7 +9,7 @@
   <body>
     
     <!--Need to fix the width-->
-    <div class="container mt-2 mb-3" style="width: 300px;">
+    <div class="container mt-2 mb-3" style="width: 500px;">
 
       <div class="row">
         <div class="col mb-1">
@@ -18,7 +18,7 @@
       </div>
 
       <div class="row">
-        <div class="col">
+        <div class="col" style="text-align:center">
           <button type="button" id="sendRequest" class="btn btn-primary btn-sm button-text">Send Requests</button>
         </div>
         <!--
@@ -28,6 +28,8 @@
         </div>
         -->
       </div>
+
+      <br>
 
       <!--
       <div class="row">
@@ -49,7 +51,14 @@
         </div>
       </div>
 
+      <div id="chartDiv">
+          <canvas id="mainChart"></canvas>
+      </div>
+
     </div>
+
+    <!--Graph script-->
+    <script src="./scripts/chart.min.js"></script>
 
     <!--Our script-->
     <script src="./scripts/popup.js" type="module"></script>
