@@ -65,7 +65,7 @@ function sendMultiRMultiGap() {
 
     for(let i = 0; i < NUMSENDS; i++) {
       sendWebSocket(g);
-      wait(200);
+      wait(100);
     }
 
   })
@@ -242,7 +242,7 @@ function generateChart(percentages){
 
 //Below global variables are used to keep track of sends
 //These are the ms gaps btwn 2 packets we will be using
-var gaps = [5, 6, 7, 8, 9, 10];
+var gaps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
 //Gaps distribution stores a send gap, and a map of its received distribution times
 //E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
@@ -256,7 +256,7 @@ var gaps1msCount = new Map();
 var numReceivedMessages = 0
 
 //Number of sends to test each gap time, i.e send 30 packet pairs with each pair being gapped by 5ms
-const NUMSENDS = 5;
+const NUMSENDS = 30;
 
 //Create the graph object outside so that we can check in the future if the graph needs to be reset
 var createdGraph = null;
