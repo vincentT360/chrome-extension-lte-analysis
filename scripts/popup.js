@@ -83,15 +83,16 @@ function sendGrantPackets() {
 }
 
 function sendInferencePackets(){
+  document.getElementById("errorMessage").innerHTML = ""
   sendGrantPackets();
   sendPeriodicityPackets();
 }
 
 function determineX(percentages){
   //start at 5 ms gap and iterate until 25 looking for either 0 or lowest percentage
-  var minIndex = 4;
+  var minIndex = 9;
   var minPercentage = 100.00;
-  for(let i = 4; i<percentages.length; i++){
+  for(let i = 9; i<percentages.length; i++){
     if(percentages[i] < ZEROTHRESHOLD){
       return i+1
     }
