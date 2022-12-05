@@ -1,6 +1,6 @@
 {
-  "name": "Project LRP",
-  "description": "Latency Reducing Chrome Extension",
+  "name": "Traffic Analysis",
+  "description": "Chrome extension to infer network parameters",
   "version": "1.0",
   "manifest_version": 3,
   "action": {

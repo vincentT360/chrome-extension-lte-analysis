@@ -1,1 +1,1 @@
-Tool for Reducing Latency
+Traffic analysis chrome extension tool, meant to infer network parameters over cellular networks.

@@ -1,7 +1,101 @@
-<html>
+<html lang="en">
+  <head>
+    <!--Bootstrap required-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/mystyles.css">
+  </head>
   <body>
-    <h1>Sending 2 HTTP Requests!</h1>
+    
+    <!--Need to fix the width-->
+    <div class="container mt-2 mb-3" style="width: 500px;">
 
+      <div class="row">
+        <div class="col mb-1">
+          <h5 style="text-align: center;">Parameter Inference Tool for LRP</h5>
+        </div>
+      </div>
+
+      <!--<div class="row">
+        <div class="col" style="text-align:center">
+          <button type="button" id="periodicityInference" class="btn btn-primary btn-sm button-text">Infer SR Periodicity</button>
+        </div>
+      </div>-->
+
+      <!--<br>
+
+      <div class="row">
+        <div class="col" style="text-align:center">
+          <button type="button" id="grantInference" class="btn btn-primary btn-sm button-text">Infer SR Grant</button>
+        </div>
+      </div>
+
+      <br>-->
+
+      <div class="row">
+        <div class="col" style="text-align:center">
+          <button type="button" id="startInference" class="btn btn-primary btn-sm button-text">Start Inference</button>
+        </div>
+      </div>
+
+      <!--
+        DEPRECATED: Shows the actual sending gap
+      <div class="row">
+        <div class="col mt-1">
+          <p style="text-align: center;" id="sendingGap" class="body-text"></p>
+        </div>
+      </div>
+      -->
+
+      <div class="row">
+        <div class="col">
+          <p style="text-align: center;" id="errorMessage" class="body-text"></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <p style="text-align: center;" id="sr_grant" class="body-text"></p>
+          <!--<p style="text-align: center;" id="bsr_grant" class="body-text"></p>
+          <p style="text-align: center;" id="sr_processing_latency" class="body-text"></p>
+          <p style="text-align: center;" id="sr_relationship" class="body-text"></p>-->
+          <p style="text-align: center;" id="bad_sr_count" class="body-text"></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <p style="text-align: center;" id="sr_periodicity" class="body-text"></p>
+          <p style="text-align: center;" id="min_x" class="body-text"></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col mt-1">
+          <div style="text-align: center;" id="receivedGap" class="body-text">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div id="chartDiv">
+            <canvas id="mainChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!--Graph script-->
+    <script src="./scripts/chart.min.js"></script>
+
+    <!--Our script-->
     <script src="./scripts/popup.js" type="module"></script>
+
+    <!--Bootstrap scripts-->
+    <script src="./scripts/jquery-3.6.1.min.js"></script>
+    <script src="./scripts/bootstrap.bundle.min.js"></script>
   </body>
 </html>
