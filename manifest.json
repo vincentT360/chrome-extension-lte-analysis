@@ -1,7 +1,7 @@
 {
-  "name": "Traffic Analysis",
-  "description": "Chrome extension to infer network parameters",
-  "version": "1.0",
+  "name": "SPICE",
+  "description": "Software-based Parameter Inference Chrome Extension for cellular networks.",
+  "version": "2.0",
   "manifest_version": 3,
   "action": {
     "default_popup": "popup.html"
