@@ -69,7 +69,7 @@ function sendPeriodicityPackets() {
   gaps.forEach(function (g) {
     for(let i = 0; i < NUMSENDS; i++) {
       sendWebSocket(g);
-      wait(100);
+      wait(50);
     }
   })
 }
@@ -78,7 +78,7 @@ function sendPeriodicityPackets() {
 function sendGrantPackets() {
   for(let i = 0;i<SRMAX;i++){
     sendLittleBigPair();
-    wait(100);
+    wait(50);
   }
 }
 
@@ -252,7 +252,7 @@ function generateChart(percentages){
 
 //Below global variables are used to keep track of sends
 //These are the ms gaps btwn 2 packets we will be using
-var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25];
 
 //Gaps distribution stores a send gap, and a map of its received distribution times
 //E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
@@ -276,7 +276,9 @@ var srResponseCount = 0;
 var srBadResponseCount = 0;
 const SRMAX = 100;
 const SRMINOUTLIER = 1;
-const SRMAXOUTLIER = 17;
+const SRMAXOUTLIER = 15;
+
+var s_periodicities = [5, 10, 20];
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
 try {
@@ -288,6 +290,7 @@ try {
 
   //This fires when we get a message back from the server
   server.onmessage = (event) => {
+    console.log("received msg from server");
 
     //Server sends a message in this form: "sendingGap receivingGap"
     //Sending gap being the gap we sent the pair of packets with
@@ -330,6 +333,7 @@ try {
       addCountData(sendGap, receivedGap);
 
       numReceivedMessages += 1;
+
       //This detects after we have received all our responses from our server
       if (numReceivedMessages == NUMSENDS * gaps.length){
         var percentages = reportGaps();
