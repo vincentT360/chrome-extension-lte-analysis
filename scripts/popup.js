@@ -84,8 +84,40 @@ function sendGrantPackets() {
 
 function sendInferencePackets(){
   document.getElementById("errorMessage").innerHTML = ""
+  document.getElementById("unOptDiff").innerHTML = "";
+  document.getElementById("optDiff").innerHTML = "";
+  document.getElementById("sr_grant").innerHTML = "";
+  document.getElementById("bad_sr_count").innerHTML = "";
+  document.getElementById("sr_periodicity").innerHTML = "";
+  document.getElementById("min_x").innerHTML = "";
+  document.getElementById("receivedGap").innerHTML = "";
   sendGrantPackets();
   sendPeriodicityPackets();
+}
+
+function sendOptimizationPackets(){
+  if(sr_grant == 0){
+    document.getElementById("errorMessage").innerHTML = "ERROR: Cannot perform optimization before parameter inference"
+  }
+  else{
+    document.getElementById("errorMessage").innerHTML = ""
+    document.getElementById("unOptDiff").innerHTML = "";
+    document.getElementById("optDiff").innerHTML = "";
+    if(connectionEstablished){
+      clientTime1 = performance.now();
+      server.send("o 1");
+
+      wait(1000);
+
+      server.send("o 2");
+      wait(sr_grant);
+      clientTime2 = performance.now();
+      server.send("o 3");
+    }
+    else{
+      console.log("Could not send requests because the WebSocket connection failed");
+    }
+  }
 }
 
 function determineX(percentages){
@@ -301,8 +333,14 @@ const SRMINOUTLIER = 1;
 const SRMAXOUTLIER = 15;
 
 var s_periodicities = [5, 10, 20];
-var sr_grant;
+var sr_grant = 0;
 const ZEROTHRESHOLD = 5.00;
+
+var unOptTime = 0;
+var optTime = 0;
+var optCount = 0;
+var clientTime1 = 0;
+var clientTime2 = 0; 
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
 try {
@@ -312,6 +350,7 @@ try {
   // document.getElementById("periodicityInference").addEventListener("click", sendPeriodicityPackets);
   // document.getElementById("grantInference").addEventListener("click", sendGrantPackets);
   document.getElementById("startInference").addEventListener("click", sendInferencePackets);
+  document.getElementById("startOptimization").addEventListener("click", sendOptimizationPackets);
 
   //This fires when we get a message back from the server
   server.onmessage = (event) => {
@@ -387,6 +426,27 @@ try {
 
       for (let [k, v] of gaps1msCount) {
         console.log(`Counts ${k} is ${v}`);
+      }
+    }
+
+    if(responseType == "o"){
+      optCount++;
+      if(optCount == 1){
+        unOptTime = performance.now();
+      }
+      else if(optCount == 3){
+        optTime = performance.now();
+
+        var unOptDiff = unOptTime - clientTime1;
+        var optDiff = optTime - clientTime2;
+        document.getElementById("unOptDiff").innerHTML = "Unoptimized latency = " + unOptDiff + " ms";
+        document.getElementById("optDiff").innerHTML = "Optimized latency = " + optDiff + " ms";
+
+        unOptTime = 0;
+        optTime = 0;
+        optCount = 0; 
+        clientTime1 = 0;
+        clientTime2 = 0;
       }
     }
   }
