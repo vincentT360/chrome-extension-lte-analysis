@@ -13,13 +13,13 @@
 
       <div class="row">
         <div class="col mb-1">
-          <h5 style="text-align: center;">Latency Analysis Tool</h5>
+          <h5 style="text-align: center;">Parameter Inference Tool for LRP</h5>
         </div>
       </div>
 
       <div class="row">
         <div class="col" style="text-align:center">
-          <button type="button" id="sendRequest" class="btn btn-primary btn-sm button-text">Send Requests</button>
+          <button type="button" id="periodicityInference" class="btn btn-primary btn-sm button-text">Infer SR Periodicity</button>
         </div>
         <!--
           DEPRECATED: Lets user pick a send gap
@@ -28,6 +28,14 @@
           <input type="number" id="timeGap" class="body-text" min="0" max="100" value="5">
         </div>
         -->
+      </div>
+
+      <br>
+
+      <div class="row">
+        <div class="col" style="text-align:center">
+          <button type="button" id="grantInference" class="btn btn-primary btn-sm button-text">Infer SR Grant</button>
+        </div>
       </div>
 
       <br>
@@ -42,6 +50,16 @@
       -->
 
       <div class="row">
+        <div class="col">
+          <p style="text-align: center;" id="sr_grant" class="body-text"></p>
+          <!--<p style="text-align: center;" id="bsr_grant" class="body-text"></p>
+          <p style="text-align: center;" id="sr_processing_latency" class="body-text"></p>
+          <p style="text-align: center;" id="sr_relationship" class="body-text"></p>-->
+          <p style="text-align: center;" id="bad_sr_count" class="body-text"></p>
+        </div>
+      </div>
+
+      <div class="row">
         <div class="col mt-1">
           <div style="text-align: center;" id="receivedGap" class="body-text">
           </div>
@@ -50,15 +68,15 @@
 
       <div class="row">
         <div class="col">
-          <p style="text-align: center;" id="errorMessage" class="body-text"></p>
+          <div id="chartDiv">
+            <canvas id="mainChart"></canvas>
+          </div>
         </div>
       </div>
 
       <div class="row">
         <div class="col">
-          <div id="chartDiv">
-            <canvas id="mainChart"></canvas>
-          </div>
+          <p style="text-align: center;" id="errorMessage" class="body-text"></p>
         </div>
       </div>
 

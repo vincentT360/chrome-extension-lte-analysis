@@ -25,17 +25,24 @@ function connect(){
 
 //Basic building block to send one request
 function sendWebSocket(gap){
-  
   if(connectionEstablished){
-
-    server.send(gap);
-    var time0 = performance.now()
-    console.log(time0)
+    server.send("p " + gap);
+    var time0 = performance.now();
     wait(gap);
-    var time1 = performance.now()
-    console.log(time1)
-    server.send(gap);
+    var time1 = performance.now();
+    server.send("p " + gap);
+    var timeDiff = time1-time0;
+    console.log("Gap: " + timeDiff);
+  }
+  else{
+    console.log("Could not send requests because the WebSocket connection failed");
+  }
+}
 
+function sendLittleBigPair(){
+  if(connectionEstablished){
+    server.send("g 1 0");
+    server.send("g 2 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
   }
   else{
     console.log("Could not send requests because the WebSocket connection failed");
@@ -57,19 +64,22 @@ function sendWebSocket(gap){
 // }
 
 //This function sends multiple requests at multiple gaps
-function sendMultiRMultiGap() {
-
+function sendPeriodicityPackets() {
   resetReceivedTracking();
-
   gaps.forEach(function (g) {
-
     for(let i = 0; i < NUMSENDS; i++) {
       sendWebSocket(g);
       wait(100);
     }
-
   })
+}
 
+//This function sends multiple pairs of one small packet coupled with a big packet (> 100B)
+function sendGrantPackets() {
+  for(let i = 0;i<SRMAX;i++){
+    sendLittleBigPair();
+    wait(100);
+  }
 }
 
 //For this gap we are testing, add the received gap value the server saw
@@ -242,7 +252,7 @@ function generateChart(percentages){
 
 //Below global variables are used to keep track of sends
 //These are the ms gaps btwn 2 packets we will be using
-var gaps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
 
 //Gaps distribution stores a send gap, and a map of its received distribution times
 //E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
@@ -261,12 +271,20 @@ const NUMSENDS = 30;
 //Create the graph object outside so that we can check in the future if the graph needs to be reset
 var createdGraph = null;
 
+var srGaps = [];
+var srResponseCount = 0;
+var srBadResponseCount = 0;
+const SRMAX = 100;
+const SRMINOUTLIER = 1;
+const SRMAXOUTLIER = 17;
+
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
 try {
   var connectionEstablished = false;
   var server = await connect();
 
-  document.getElementById("sendRequest").addEventListener("click", sendMultiRMultiGap);
+  document.getElementById("periodicityInference").addEventListener("click", sendPeriodicityPackets);
+  document.getElementById("grantInference").addEventListener("click", sendGrantPackets);
 
   //This fires when we get a message back from the server
   server.onmessage = (event) => {
@@ -276,31 +294,60 @@ try {
     //Receiving gap being the actual observed gap on the receiver side
 
     var splitData = event.data.split(" ");
-    var sendGap = Number(splitData[0]);
-    var receivedGap = Number(splitData[1]);
+    var responseType = splitData[0]
 
-    addDistributionData(sendGap, receivedGap);
-    addCountData(sendGap, receivedGap);
-
-    numReceivedMessages += 1;
-    //This detects after we have received all our responses from our server
-    if (numReceivedMessages == NUMSENDS * gaps.length){
-      var percentages = reportGaps();
-      createdGraph = generateChart(percentages);
-    }
-
-    //Debugging, lets you see the contents of our 2 maps
-    for (let [key, value] of gapsDistribution) {
-      console.log(`For send gap ${key}`)
-      for (let [k2, v2] of value) {
-        console.log(k2, v2);
+    if(responseType == "g"){
+      srResponseCount++;
+      var t_2 = splitData[1];
+      srGaps.push(Number(t_2));
+      if(srResponseCount == SRMAX){
+        var srTotal = 0;
+        for(let i = 0;i<srResponseCount;i++){
+          if(srGaps[i] < SRMINOUTLIER || srGaps[i] > SRMAXOUTLIER){
+            srBadResponseCount++;
+          }
+          else{
+            srTotal += srGaps[i];
+          }
+        }
+        var avgSR = srTotal / (SRMAX-srBadResponseCount);
+        document.getElementById("sr_grant").innerHTML = "T<sub>sr_grant</sub> = " + avgSR;
+        // document.getElementById("bsr_grant").innerHTML = "T<sub>bsr_grant</sub> = " + avgSR;
+        // document.getElementById("sr_processing_latency").innerHTML = "SR Processing Latency = " + (avgSR-4);
+        // document.getElementById("sr_relationship").innerHTML = "T<sub>sr_grant</sub> = SR Processing Latency + 4 ms";
+        document.getElementById("bad_sr_count").innerHTML = srBadResponseCount + " outlier packet pairs dropped";
+        srGaps = [];
+        srResponseCount = 0;
+        srBadResponseCount = 0;
       }
     }
 
-    for (let [k, v] of gaps1msCount) {
-      console.log(`Counts ${k} is ${v}`);
-    }
+    if(responseType == "p"){
+      var sendGap = Number(splitData[1]);
+      var receivedGap = Number(splitData[2]);
 
+      addDistributionData(sendGap, receivedGap);
+      addCountData(sendGap, receivedGap);
+
+      numReceivedMessages += 1;
+      //This detects after we have received all our responses from our server
+      if (numReceivedMessages == NUMSENDS * gaps.length){
+        var percentages = reportGaps();
+        createdGraph = generateChart(percentages);
+      }
+
+      //Debugging, lets you see the contents of our 2 maps
+      for (let [key, value] of gapsDistribution) {
+        console.log(`For send gap ${key}`)
+        for (let [k2, v2] of value) {
+          console.log(k2, v2);
+        }
+      }
+
+      for (let [k, v] of gaps1msCount) {
+        console.log(`Counts ${k} is ${v}`);
+      }
+    }
   }
   
 } catch(error) {
