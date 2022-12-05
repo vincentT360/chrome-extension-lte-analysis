@@ -82,6 +82,27 @@ function sendGrantPackets() {
   }
 }
 
+function sendInferencePackets(){
+  sendGrantPackets();
+  sendPeriodicityPackets();
+}
+
+function determineX(percentages){
+  //start at 5 ms gap and iterate until 25 looking for either 0 or lowest percentage
+  var minIndex = 4;
+  var minPercentage = 100.00;
+  for(let i = 4; i<percentages.length; i++){
+    if(percentages[i] < ZEROTHRESHOLD){
+      return i+1
+    }
+    if(percentages[i] < minPercentage){
+      minPercentage = percentages[i];
+      minIndex = i;
+    }
+  }
+  return minIndex+1;
+}
+
 //For this gap we are testing, add the received gap value the server saw
 function addDistributionData(sendGap, receivedGap){
   //Code for rounding the receivedGap to the nearest .25
@@ -252,7 +273,7 @@ function generateChart(percentages){
 
 //Below global variables are used to keep track of sends
 //These are the ms gaps btwn 2 packets we will be using
-var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25];
+var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
 
 //Gaps distribution stores a send gap, and a map of its received distribution times
 //E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
@@ -279,14 +300,17 @@ const SRMINOUTLIER = 1;
 const SRMAXOUTLIER = 15;
 
 var s_periodicities = [5, 10, 20];
+var sr_grant;
+const ZEROTHRESHOLD = 5.00;
 
 //By putting this outside of a function, when extension is opened via popup, we establish connection first
 try {
   var connectionEstablished = false;
   var server = await connect();
 
-  document.getElementById("periodicityInference").addEventListener("click", sendPeriodicityPackets);
-  document.getElementById("grantInference").addEventListener("click", sendGrantPackets);
+  // document.getElementById("periodicityInference").addEventListener("click", sendPeriodicityPackets);
+  // document.getElementById("grantInference").addEventListener("click", sendGrantPackets);
+  document.getElementById("startInference").addEventListener("click", sendInferencePackets);
 
   //This fires when we get a message back from the server
   server.onmessage = (event) => {
@@ -314,7 +338,7 @@ try {
           }
         }
         var avgSR = srTotal / (SRMAX-srBadResponseCount);
-        document.getElementById("sr_grant").innerHTML = "T<sub>sr_grant</sub> = " + avgSR;
+        document.getElementById("sr_grant").innerHTML = "T<sub>sr_grant</sub> = " + avgSR + " ms";
         // document.getElementById("bsr_grant").innerHTML = "T<sub>bsr_grant</sub> = " + avgSR;
         // document.getElementById("sr_processing_latency").innerHTML = "SR Processing Latency = " + (avgSR-4);
         // document.getElementById("sr_relationship").innerHTML = "T<sub>sr_grant</sub> = SR Processing Latency + 4 ms";
@@ -322,6 +346,7 @@ try {
         srGaps = [];
         srResponseCount = 0;
         srBadResponseCount = 0;
+        sr_grant = avgSR;
       }
     }
 
@@ -338,6 +363,17 @@ try {
       if (numReceivedMessages == NUMSENDS * gaps.length){
         var percentages = reportGaps();
         createdGraph = generateChart(percentages);
+        var xValue = determineX(percentages);
+        document.getElementById("min_x").innerHTML = xValue + " ms was chosen as the zero % point";
+        var sr_periodicity = xValue - sr_grant;
+        if(sr_periodicity < 0){
+          document.getElementById("errorMessage").innerHTML = "sr_grant value is larger than minimum % received gap"
+          console.log("sr_grant value is larger than minimum % received gap")
+        }
+        var roundedPeriodicity = s_periodicities.reduce(function(prev, curr) {
+          return (Math.abs(curr - sr_periodicity) < Math.abs(prev - sr_periodicity) ? curr : prev);
+        });
+        document.getElementById("sr_periodicity").innerHTML = "T<sub>sr_periodicity</sub> = " + roundedPeriodicity + " ms";
       }
 
       //Debugging, lets you see the contents of our 2 maps
