@@ -273,7 +273,7 @@ function generateChart(percentages){
 
 //Below global variables are used to keep track of sends
 //These are the ms gaps btwn 2 packets we will be using
-var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+var gaps = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25];
 
 //Gaps distribution stores a send gap, and a map of its received distribution times
 //E.g {5: {0.25: 1, 0.50: 4, 5.00: 3}, 6: {0.25: 0, 1.25: 4}, ... }
