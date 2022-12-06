@@ -95,6 +95,16 @@ function sendInferencePackets(){
   sendPeriodicityPackets();
 }
 
+function sendOptimizedPair(){
+  server.send("o 2");
+  wait(sr_grant);
+  clientTime2 = performance.now();
+  server.send("o 3");
+
+  console.log("clientTime1: " + clientTime1);
+  console.log("clientTime2: " + clientTime2);
+}
+
 function sendOptimizationPackets(){
   if(sr_grant == 0){
     document.getElementById("errorMessage").innerHTML = "ERROR: Cannot perform optimization before parameter inference"
@@ -107,12 +117,7 @@ function sendOptimizationPackets(){
       clientTime1 = performance.now();
       server.send("o 1");
 
-      wait(1000);
-
-      server.send("o 2");
-      wait(sr_grant);
-      clientTime2 = performance.now();
-      server.send("o 3");
+      setTimeout(sendOptimizedPair, 3000);
     }
     else{
       console.log("Could not send requests because the WebSocket connection failed");
@@ -431,6 +436,7 @@ try {
 
     if(responseType == "o"){
       optCount++;
+      console.log("Received response " + optCount + " at " + performance.now());
       if(optCount == 1){
         unOptTime = performance.now();
       }
